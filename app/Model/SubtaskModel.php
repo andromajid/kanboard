@@ -34,9 +34,10 @@ class SubtaskModel extends Base
      *
      * @var string
      */
-    const EVENT_UPDATE = 'subtask.update';
-    const EVENT_CREATE = 'subtask.create';
-    const EVENT_DELETE = 'subtask.delete';
+    const EVENT_UPDATE        = 'subtask.update';
+    const EVENT_CREATE        = 'subtask.create';
+    const EVENT_DELETE        = 'subtask.delete';
+    const EVENT_CREATE_UPDATE = 'subtask.create_update';
 
     /**
      * Get projectId from subtaskId
@@ -88,13 +89,22 @@ class SubtaskModel extends Base
             ->asc(self::TABLE.'.position');
     }
 
+    /**
+     * Count by assignee and task status.
+     *
+     * @param integer $userId
+     * @return integer
+     */
     public function countByAssigneeAndTaskStatus($userId)
     {
-        return $this->db->table(self::TABLE)
+        $query = $this->db->table(self::TABLE)
             ->eq('user_id', $userId)
             ->eq(TaskModel::TABLE.'.is_active', TaskModel::STATUS_OPEN)
-            ->join(Taskmodel::TABLE, 'id', 'task_id')
-            ->count();
+            ->join(Taskmodel::TABLE, 'id', 'task_id');
+
+        $this->hook->reference('model:subtask:count:query', $query);
+
+        return $query->count();
     }
 
     /**
@@ -207,7 +217,10 @@ class SubtaskModel extends Base
 
         if ($subtaskId !== false) {
             $this->subtaskTimeTrackingModel->updateTaskTimeTracking($values['task_id']);
-            $this->queueManager->push($this->subtaskEventJob->withParams($subtaskId, self::EVENT_CREATE));
+            $this->queueManager->push($this->subtaskEventJob->withParams(
+                $subtaskId, 
+                array(self::EVENT_CREATE_UPDATE, self::EVENT_CREATE)
+            ));
         }
 
         return $subtaskId;
@@ -231,7 +244,11 @@ class SubtaskModel extends Base
             $this->subtaskTimeTrackingModel->updateTaskTimeTracking($subtask['task_id']);
 
             if ($fireEvent) {
-                $this->queueManager->push($this->subtaskEventJob->withParams($subtask['id'], self::EVENT_UPDATE, $values));
+                $this->queueManager->push($this->subtaskEventJob->withParams(
+                    $subtask['id'], 
+                    array(self::EVENT_CREATE_UPDATE, self::EVENT_UPDATE),
+                    $values
+                ));
             }
         }
 
@@ -247,7 +264,7 @@ class SubtaskModel extends Base
      */
     public function remove($subtaskId)
     {
-        $this->subtaskEventJob->execute($subtaskId, self::EVENT_DELETE);
+        $this->subtaskEventJob->execute($subtaskId, array(self::EVENT_DELETE));
         return $this->db->table(self::TABLE)->eq('id', $subtaskId)->remove();
     }
 
@@ -264,7 +281,7 @@ class SubtaskModel extends Base
         return $this->db->transaction(function (Database $db) use ($srcTaskId, $dstTaskId) {
 
             $subtasks = $db->table(SubtaskModel::TABLE)
-                ->columns('title', 'time_estimated', 'position')
+                ->columns('title', 'time_estimated', 'position','user_id')
                 ->eq('task_id', $srcTaskId)
                 ->asc('position')
                 ->findAll();

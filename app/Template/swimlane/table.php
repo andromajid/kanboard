@@ -4,6 +4,7 @@
     <thead>
         <tr>
             <th><?= t('Name') ?></th>
+            <th class="column-15"><?= t('Task limit') ?></th>
             <th class="column-15"><?= t('Open tasks') ?></th>
             <th class="column-15"><?= t('Closed tasks') ?></th>
         </tr>
@@ -40,10 +41,11 @@
                 <?= $this->text->e($swimlane['name']) ?>
 
                 <?php if (! empty($swimlane['description'])): ?>
-                    <span class="tooltip" title="<?= $this->text->markdownAttribute($swimlane['description']) ?>">
-                        <i class="fa fa-info-circle"></i>
-                    </span>
+                    <?= $this->app->tooltipMarkdown($swimlane['description']) ?>
                 <?php endif ?>
+            </td>
+            <td>
+                <?= $swimlane['task_limit'] > 0 ? $swimlane['task_limit'] : '∞' ?>
             </td>
             <td>
                 <?= $swimlane['nb_open_tasks'] ?>

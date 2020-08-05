@@ -1,3 +1,5 @@
+<?= $this->hook->render('template:dashboard:show:before-filter-box', array('user' => $user)) ?>
+
 <div class="filter-box margin-bottom">
     <form method="get" action="<?= $this->url->dir() ?>" class="search">
         <?= $this->form->hidden('controller', array('controller' => 'SearchController')) ?>
@@ -12,6 +14,8 @@
     </form>
 </div>
 
+<?= $this->hook->render('template:dashboard:show:after-filter-box', array('user' => $user)) ?>
+
 <?php if (! $project_paginator->isEmpty()): ?>
     <div class="table-list">
         <?= $this->render('project_list/header', array('paginator' => $project_paginator)) ?>
@@ -24,13 +28,18 @@
                         <strong><?= '#'.$project['id'] ?></strong>
                     <?php endif ?>
 
+                    <?= $this->hook->render('template:dashboard:project:before-title', array('project' => $project)) ?>
+
                     <span class="table-list-title <?= $project['is_active'] == 0 ? 'status-closed' : '' ?>">
                         <?= $this->url->link($this->text->e($project['name']), 'BoardViewController', 'show', array('project_id' => $project['id'])) ?>
                     </span>
 
                     <?php if ($project['is_private']): ?>
-                        <i class="fa fa-lock fa-fw" title="<?= t('Private project') ?>"></i>
+                        <i class="fa fa-lock fa-fw" title="<?= t('Personal project') ?>"></i>
                     <?php endif ?>
+
+                    <?= $this->hook->render('template:dashboard:project:after-title', array('project' => $project)) ?>
+
                 </div>
                 <div class="table-list-details">
                     <?php foreach ($project['columns'] as $column): ?>
@@ -51,7 +60,7 @@
     <?php foreach ($overview_paginator as $result): ?>
         <?php if (! $result['paginator']->isEmpty()): ?>
             <div class="page-header">
-                <h2><?= $this->url->link($this->text->e($result['project_name']), 'BoardViewController', 'show', array('project_id' => $result['project_id'])) ?></h2>
+                <h2 id="project-tasks-<?= $result['project_id'] ?>"><?= $this->url->link($this->text->e($result['project_name']), 'BoardViewController', 'show', array('project_id' => $result['project_id'])) ?></h2>
             </div>
 
             <div class="table-list">
@@ -63,6 +72,7 @@
                     <div class="table-list-row color-<?= $task['color_id'] ?>">
                         <?= $this->render('task_list/task_title', array(
                             'task' => $task,
+                            'redirect' => 'dashboard',
                         )) ?>
 
                         <?= $this->render('task_list/task_details', array(
@@ -81,6 +91,8 @@
                             'task'    => $task,
                             'user_id' => $user['id'],
                         )) ?>
+
+                        <?= $this->hook->render('template:dashboard:task:footer', array('task' => $task)) ?>
                     </div>
                 <?php endforeach ?>
             </div>

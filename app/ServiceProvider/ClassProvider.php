@@ -47,6 +47,7 @@ class ClassProvider implements ServiceProviderInterface
             'LinkModel',
             'NotificationModel',
             'PasswordResetModel',
+            'PredefinedTaskDescriptionModel',
             'ProjectModel',
             'ProjectFileModel',
             'ProjectActivityModel',
@@ -84,6 +85,7 @@ class ClassProvider implements ServiceProviderInterface
             'TaskLinkModel',
             'TaskModificationModel',
             'TaskPositionModel',
+            'TaskReorderModel',
             'TaskStatusModel',
             'TaskTagModel',
             'TaskMetadataModel',
@@ -118,9 +120,9 @@ class ClassProvider implements ServiceProviderInterface
             'TaskLinkValidator',
             'TaskValidator',
             'UserValidator',
+            'PredefinedTaskDescriptionValidator',
         ),
         'Import' => array(
-            'TaskImport',
             'UserImport',
         ),
         'Export' => array(

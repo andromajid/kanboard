@@ -47,9 +47,15 @@ class UserModificationController extends BaseController
         $values = $this->request->getValues();
 
         if (! $this->userSession->isAdmin()) {
-            if (isset($values['role'])) {
-                unset($values['role']);
-            }
+            $values = array(
+                'id' => $this->userSession->getId(),
+                'username' => isset($values['username']) ? $values['username'] : '',
+                'name' => isset($values['name']) ? $values['name'] : '',
+                'email' => isset($values['email']) ? $values['email'] : '',
+                'timezone' => isset($values['timezone']) ? $values['timezone'] : '',
+                'language' => isset($values['language']) ? $values['language'] : '',
+                'filter' => isset($values['filter']) ? $values['filter'] : '',
+            );
         }
 
         list($valid, $errors) = $this->userValidator->validateModification($values);

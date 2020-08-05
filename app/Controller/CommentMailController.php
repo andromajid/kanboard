@@ -34,7 +34,7 @@ class CommentMailController extends BaseController
         list($valid, $errors) = $this->commentValidator->validateEmailCreation($values);
 
         if ($valid) {
-            $this->sendByEmail($values);
+            $this->sendByEmail($values, $task);
             $values = $this->prepareComment($values);
 
             if ($this->commentModel->create($values) !== false) {
@@ -49,26 +49,27 @@ class CommentMailController extends BaseController
         }
     }
 
-    protected function sendByEmail(array $values)
+    protected function sendByEmail(array $values, array $task)
     {
-        $html = $this->template->render('comment_mail/email', array(
-            'email' => $values,
-        ));
+        $html = $this->template->render('comment_mail/email', array('email' => $values, 'task' => $task));
+        $emails = explode_csv_field($values['emails']);
 
-        $this->emailClient->send(
-            $values['email'],
-            $values['email'],
-            $values['subject'],
-            $html
-        );
+        foreach ($emails as $email) {
+            $this->emailClient->send(
+                $email,
+                $email,
+                $values['subject'],
+                $html
+            );
+        }
     }
 
     protected function prepareComment(array $values)
     {
-        $values['comment'] .= "\n\n_".t('Sent by email to [%s](mailto:%s) (%s)', $values['email'], $values['email'], $values['subject']).'_';
+        $values['comment'] .= "\n\n_".t('Sent by email to "%s" (%s)', $values['emails'], $values['subject']).'_';
 
         unset($values['subject']);
-        unset($values['email']);
+        unset($values['emails']);
 
         return $values;
     }

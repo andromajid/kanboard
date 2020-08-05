@@ -48,19 +48,8 @@ class TextHelper extends Base
     {
         $parser = new Markdown($this->container, $isPublicLink);
         $parser->setMarkupEscaped(MARKDOWN_ESCAPE_HTML);
+        $parser->setBreaksEnabled(true);
         return $parser->text($text);
-    }
-
-    /**
-     * Escape Markdown text that need to be stored in HTML attribute
-     *
-     * @access public
-     * @param  string $text
-     * @return mixed
-     */
-    public function markdownAttribute($text)
-    {
-        return htmlentities($this->markdown($text), ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -90,19 +79,19 @@ class TextHelper extends Base
      */
     public function phpToBytes($val)
     {
-        $val = trim($val);
-        $last = strtolower($val[strlen($val)-1]);
+        $size = (int) substr($val, 0, -1);
+        $last = strtolower(substr($val, -1));
 
         switch ($last) {
             case 'g':
-                $val *= 1024;
+                $size *= 1024;
             case 'm':
-                $val *= 1024;
+                $size *= 1024;
             case 'k':
-                $val *= 1024;
+                $size *= 1024;
         }
 
-        return $val;
+        return $size;
     }
 
     /**
